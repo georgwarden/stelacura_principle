@@ -3,6 +3,8 @@ package stelacura
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
@@ -24,6 +26,10 @@ import com.badlogic.gdx.utils.Array as GdxArray
 
 class Observatory1Screen : KtxScreen {
 
+    private val pScale = 0.15f
+    private val heroHalfW = 40f
+    private val heroHalfH = 123f
+
     private val batch = SpriteBatch()
     private val shapeRenderer = ShapeRenderer()
 
@@ -32,7 +38,10 @@ class Observatory1Screen : KtxScreen {
     private val loader = LibGdxLoader(data).also { it.load(handle.file()) }
     private val drawer = LibGdxDrawer(loader, shapeRenderer)
     private val player = Player(data.getEntity(0)).apply {
-        scale = 0.08f
+        scale = pScale
+    }
+    private val stillPlayer = Sprite(Texture(Gdx.files.internal("stelacura.png"))).apply {
+        setScale(pScale)
     }
 
     private val world = World(Vector2(0.0f, -10.0f), true)
@@ -44,26 +53,13 @@ class Observatory1Screen : KtxScreen {
 
     private val hero = world.body {
         type = BodyDef.BodyType.DynamicBody
-        box(50f, 100f) {
+        box(heroHalfW * 2, heroHalfH * 2) {
             density = 0.1f
             friction = 0.5f
             restitution = 0f
         }
         position.set(0f, 100f)
         fixedRotation = true
-    }
-    private val cameraAnchor = world.body {
-        type = BodyDef.BodyType.DynamicBody
-        box(1280f, 720f) {
-            filter {
-                categoryBits = Categories.Camera
-                maskBits = Categories.Bedrock
-            }
-        }
-    }.also { anchor ->
-        anchor.ropeJointWith(hero) {
-            this.maxLength = 360f
-        }
     }
     private val ground = world.body {
         type = BodyDef.BodyType.StaticBody
@@ -82,38 +78,58 @@ class Observatory1Screen : KtxScreen {
         clearScreen(0f, 0f, 0f, 1f)
         renderer.render(world, camera.combined)
         world.step(1/45f, 6, 2)
-        camera.position.set(cameraAnchor.position, 0f)
+        camera.position.set(hero.position.x, 360f, 0f)
         camera.update()
 
+        var move = false
+
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            hero.applyLinearImpulse(Vector2(100f, 0f), Vector2(25f, 50f), true)
+            hero.applyLinearImpulse(Vector2(100f, 0f), Vector2(heroHalfW, heroHalfH), true)
+            move = true
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
             if (!isDirectedRight) {
                 isDirectedRight = true
                 player.flipX()
+                stillPlayer.flip(true, false)
             }
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            hero.applyLinearImpulse(Vector2(-100f, 0f), Vector2(25f, 50f), true)
+            hero.applyLinearImpulse(Vector2(-100f, 0f), Vector2(heroHalfW, heroHalfH), true)
+            move = true
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
             if (isDirectedRight) {
                 isDirectedRight = false
                 player.flipX()
+                stillPlayer.flip(true, false)
             }
         }
 
         val drawCoords = camera.project(Vector3(hero.position.x, hero.position.y, 0f))
+
+        Gdx.app.log("sss", "${hero.position.y}, ${player.prevBBox.boundingRect.bottom}, ${player.y}")
         player.setPosition(drawCoords.x, drawCoords.y)
         player.update()
+        stillPlayer.setOrigin(drawCoords.x + heroHalfW, drawCoords.y - heroHalfH)
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        for (i in -100..100) {
+            val bottom = camera.project(Vector3(i * 100f, 0f, 0f))
+            shapeRenderer.line(bottom.x, 0f, bottom.x, 720f)
+        }
+        shapeRenderer.end()
 
         batch.begin()
-        drawer.beforeDraw(player, batch)
-        drawer.draw(player)
+        if (move) {
+            drawer.beforeDraw(player, batch)
+            drawer.draw(player)
+        } else {
+            stillPlayer.draw(batch)
+        }
         batch.end()
     }
 
