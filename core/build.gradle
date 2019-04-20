@@ -11,5 +11,5 @@ dependencies {
   compile "io.github.libktx:ktx-box2d:$ktxBox2dVersion"
   compile "io.github.libktx:ktx-async:$ktxAsyncVersion"
   compile "io.github.libktx:ktx-app:$ktxAppVersion"
+  compile "com.underwaterapps.overlap2druntime:overlap2d-runtime-libgdx:0.1.1"
 }
-        
