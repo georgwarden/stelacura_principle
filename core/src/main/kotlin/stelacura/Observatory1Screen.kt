@@ -2,6 +2,7 @@ package stelacura
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -34,7 +35,7 @@ class Observatory1Screen : KtxScreen {
     private val batch = SpriteBatch()
     private val shapeRenderer = ShapeRenderer()
 
-    private val inputSource = ControllerController()
+    private val inputSource: InputSource = ControllerController()
 
     private val handle = Gdx.files.internal("walk_ani/stelacura_walks.scml")
     private val data = SCMLReader(handle.read()).data
@@ -47,7 +48,7 @@ class Observatory1Screen : KtxScreen {
         setScale(pScale)
     }
 
-    private val world = World(Vector2(0.0f, -10.0f), true)
+    private val world = World(Vector2(0.0f, -50.0f), true)
     private val camera = OrthographicCamera().also {
         it.position.set(0f, 0f, 0f)
         it.setToOrtho(false, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
@@ -57,8 +58,8 @@ class Observatory1Screen : KtxScreen {
     private val hero = world.body {
         type = BodyDef.BodyType.DynamicBody
         box(heroHalfW * 2, heroHalfH * 2) {
-            density = 0.1f
-            friction = 0.5f
+            density = 0.0f
+            friction = 0.0f
             restitution = 0f
         }
         position.set(0f, 100f)
@@ -66,7 +67,7 @@ class Observatory1Screen : KtxScreen {
     }
     private val ground = world.body {
         type = BodyDef.BodyType.StaticBody
-        box(1280f) {
+        box(1280f * 2) {
             density = 0f
             friction = 0f
             restitution = 0f
@@ -77,7 +78,10 @@ class Observatory1Screen : KtxScreen {
     }
 
     init {
-        Controllers.addListener(inputSource)
+        Controllers.addListener(inputSource as ControllerListener)
+        inputSource.onJumpClicked {
+            hero.applyLinearImpulse(Vector2(0f, 3000f), Vector2(heroHalfW, heroHalfH), true)
+        }
     }
 
     private var isDirectedRight = true
@@ -88,14 +92,13 @@ class Observatory1Screen : KtxScreen {
         camera.position.set(hero.position.x, 360f, 0f)
         camera.update()
 
-        var move = false
+        val input = inputSource.pollDirection()
 
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            hero.applyLinearImpulse(Vector2(100f, 0f), Vector2(heroHalfW, heroHalfH), true)
-            move = true
-        }
+        val move = input.x != 0f
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
+        hero.applyForceToCenter(Vector2(input.x * 100f, 0f), true)
+
+        if (input.x > 0) {
             if (!isDirectedRight) {
                 isDirectedRight = true
                 player.flipX()
@@ -103,12 +106,7 @@ class Observatory1Screen : KtxScreen {
             }
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            hero.applyLinearImpulse(Vector2(-100f, 0f), Vector2(heroHalfW, heroHalfH), true)
-            move = true
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+        if (input.x < 0) {
             if (isDirectedRight) {
                 isDirectedRight = false
                 player.flipX()
@@ -118,7 +116,6 @@ class Observatory1Screen : KtxScreen {
 
         val drawCoords = camera.project(Vector3(hero.position.x, hero.position.y, 0f))
 
-        Gdx.app.log("sss", "${hero.position.y}, ${player.prevBBox.boundingRect.bottom}, ${player.y}")
         player.setPosition(drawCoords.x, drawCoords.y)
         player.update()
         stillPlayer.setOrigin(drawCoords.x + heroHalfW, drawCoords.y - heroHalfH)
