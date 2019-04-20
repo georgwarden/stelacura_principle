@@ -1,8 +1,13 @@
 package stelacura
 
+import com.badlogic.gdx.controllers.Controllers
 import ktx.app.KtxScreen
 
 class SplashScreen : KtxScreen {
+
+    init {
+        Controllers.addListener(ControllerController())
+    }
 
     override fun show() {
         // Prepare your screen here.
