@@ -2,6 +2,7 @@ package stelacura
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
@@ -32,6 +33,8 @@ class Observatory1Screen : KtxScreen {
 
     private val batch = SpriteBatch()
     private val shapeRenderer = ShapeRenderer()
+
+    private val inputSource = ControllerController()
 
     private val handle = Gdx.files.internal("walk_ani/stelacura_walks.scml")
     private val data = SCMLReader(handle.read()).data
@@ -71,6 +74,10 @@ class Observatory1Screen : KtxScreen {
                 categoryBits = Categories.Bedrock
             }
         }
+    }
+
+    init {
+        Controllers.addListener(inputSource)
     }
 
     private var isDirectedRight = true
