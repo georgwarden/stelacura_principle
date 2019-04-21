@@ -52,8 +52,9 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         it.setPosition(0f, 0f)
     }
 
-    private val themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("observatory_theme.mp3")))
+    private val themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("observatory_theme.mp3"))).also { it.color.a = 0.5f }
     private val curtainActor = CurtainActor(ShapeRenderer())
+    private val steps = Gdx.audio.newSound(Gdx.files.internal("sounds/wood_steps.mp3"))
 
     private val hero = world.body {
         type = BodyDef.BodyType.DynamicBody
@@ -182,6 +183,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         themeActor.music.play()
     }
 
+    private var stepsId: Long? = null
     private var isDirectedRight = true
     override fun render(delta: Float) {
         clearScreen(0.3f, 0.3f, 0.3f, 1f)
@@ -211,8 +213,16 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
             }
         }
 
+        if (move) {
+            if (stepsId == null) {
+                stepsId = steps.loop()
+            }
+        }
+
         if (!move) {
             player.time = 0
+            stepsId?.let { steps.stop(it) }
+            stepsId = null
         }
 
         val drawCoords = camera.project(Vector3(hero.position.x, hero.position.y, 0f))
