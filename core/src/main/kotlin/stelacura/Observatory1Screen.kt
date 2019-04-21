@@ -10,9 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.physics.box2d.BodyDef
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
-import com.badlogic.gdx.physics.box2d.World
+import com.badlogic.gdx.physics.box2d.*
 import com.brashmonkey.spriter.Player
 import com.brashmonkey.spriter.SCMLReader
 import com.uwsoft.editor.renderer.utils.LibGdxDrawer
@@ -84,9 +82,11 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
 
     private val telescope = world.body {
         type = BodyDef.BodyType.StaticBody
+        userData = "telescope"
         box(width = 100f, height = 200f) {
             isSensor = true
         }
+        position.set(500f, 0f)
     }
 
     private var currentlyInteractable: String? = null
@@ -94,12 +94,56 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
             "telescope" to { core.goTo<DesertScreen>() }
     )
 
+    private val interactionHint = Texture(Gdx.files.internal("interaction_hint.png"))
+    private var interactionHintVisible = false
+    private val interactionHintPosition = Vector2()
+
     init {
         Controllers.addListener(inputSource as ControllerListener)
         inputSource.onJumpClicked {
             hero.applyLinearImpulse(Vector2(0f, 3000f), Vector2(heroHalfW, heroHalfH), true)
         }
+        world.setContactListener(object : ContactListener {
+            override fun beginContact(contact: Contact) {
+                val bA = contact.fixtureA.body
+                val bB = contact.fixtureB.body
 
+                fun ap(interactable: Body) {
+                    currentlyInteractable = interactable.userData as String
+                    val v0 = interactable.position
+                    interactionHintPosition.set(v0.x - 39f, heroHalfH * 2 + 40f)
+                    interactionHintVisible = true
+                }
+
+                when {
+                    bA == hero && bB.userData in interactionActions -> ap(bB)
+                    bB == hero && bA.userData in interactionActions -> ap(bA)
+                }
+
+            }
+
+            override fun endContact(contact: Contact) {
+                val bA = contact.fixtureA.body
+                val bB = contact.fixtureB.body
+
+                fun ap() {
+                    currentlyInteractable = null
+                    interactionHintVisible = false
+                }
+
+                when {
+                    bA == hero && bB.userData in interactionActions -> ap()
+                    bB == hero && bA.userData in interactionActions -> ap()
+                }
+            }
+
+            override fun preSolve(contact: Contact?, oldManifold: Manifold?) {
+            }
+
+            override fun postSolve(contact: Contact?, impulse: ContactImpulse?) {
+            }
+
+        })
     }
 
     private var isDirectedRight = true
@@ -148,6 +192,10 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         shapeRenderer.end()
 
         batch.begin()
+        if (interactionHintVisible) {
+            val dc = camera.project(Vector3(interactionHintPosition, 0f))
+            batch.draw(interactionHint, dc.x, dc.y)
+        }
         drawer.beforeDraw(player, batch)
         drawer.draw(player)
         batch.end()
