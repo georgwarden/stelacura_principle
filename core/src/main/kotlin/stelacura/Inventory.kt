@@ -21,9 +21,14 @@ class Inventory : Actor() {
     }
     private val font = generator.generateFont(parameter)
 
+    private val noteAdding = Gdx.audio.newSound(Gdx.files.internal("sounds/add_note.mp3"))
+    private val openInventory = Gdx.audio.newSound(Gdx.files.internal("sounds/open_inventory.mp3"))
+
     override fun draw(batch: Batch?, parentAlpha: Float) {
         super.draw(batch, parentAlpha)
         if (fuck) {
+            openInventory.play()
+
             paperSprite.setPosition(this.x, this.y)
             paperSprite.setSize(865f / 2f, 606f / 2f)
             paperSprite.draw(batch)
@@ -35,5 +40,6 @@ class Inventory : Actor() {
 
     fun addNote(note: String) {
         this.notes.add(note)
+        noteAdding.play()
     }
 }
