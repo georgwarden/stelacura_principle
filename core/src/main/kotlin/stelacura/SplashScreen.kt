@@ -66,7 +66,7 @@ class SplashScreen : KtxScreen {
 
     override fun render(delta: Float) {
         // Draw your screen here. "delta" is the time since last render in seconds.
-        handleInput()
+        //handleInput()
         actor.act(delta)
         logoActor.act(delta)
         playActor.act(delta)

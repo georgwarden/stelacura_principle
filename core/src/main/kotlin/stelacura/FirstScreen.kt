@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import ktx.app.KtxScreen
 import ktx.app.use
 
-class SplashScreen : KtxScreen {
+class SplashScreen2 : KtxScreen {
 
     private val inventory = Inventory()
     private val batch = SpriteBatch()
