@@ -55,6 +55,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
             restitution = 0f
         }
         position.set(100f, 10f)
+        this.linearDamping = 1.5f
         fixedRotation = true
     }
 

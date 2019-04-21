@@ -2,6 +2,7 @@ package stelacura
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -36,10 +37,18 @@ class SplashScreen(private val core: Core) : KtxScreen {
     private val cam = OrthographicCamera(1920f, 1080f)
     private val batch = SpriteBatch()
 
+    private lateinit var themeActor: MusicActor
+
     private val controllerController = ControllerController()
 
     init {
         controllerController.onStartClicked {
+            themeActor.addAction(
+                    Actions.sequence(
+                            Actions.fadeOut(1.5f),
+                            Actions.run { themeActor.music.stop() }
+                    )
+            )
             curtainActor.addAction(
                     Actions.sequence(
                             Actions.fadeIn(1.5f),
@@ -72,7 +81,13 @@ class SplashScreen(private val core: Core) : KtxScreen {
                                                         Actions.sequence(
                                                                 Actions.fadeIn(1f),
                                                                 Actions.run { playActor.addAction(Actions.fadeIn(1.5f)) },
-                                                                Actions.run { Controllers.addListener(controllerController) }
+                                                                Actions.run { Controllers.addListener(controllerController) },
+                                                                Actions.forever(
+                                                                        Actions.sequence(
+                                                                                Actions.alpha(0.8f, 0.5f),
+                                                                                Actions.alpha(1f, 0.5f)
+                                                                        )
+                                                                )
                                                         )
                                                 )
                                             }
@@ -87,7 +102,8 @@ class SplashScreen(private val core: Core) : KtxScreen {
     }
 
     override fun show() {
-        // Prepare your screen here.
+        themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("splash_theme.mp3")))
+        themeActor.music.play()
     }
 
     override fun render(delta: Float) {
@@ -98,6 +114,7 @@ class SplashScreen(private val core: Core) : KtxScreen {
         logoActor.act(delta)
         playActor.act(delta)
         curtainActor.act(delta)
+        themeActor.act(delta)
         cam.position.set(actor.width / 2f + actor.x, actor.height / 2f + actor.y, 0f)
         cam.update()
         batch.projectionMatrix = cam.combined
@@ -132,7 +149,6 @@ class SplashScreen(private val core: Core) : KtxScreen {
     }
 
     override fun hide() {
-        // This method is called when another screen replaces this one.
     }
 
     override fun dispose() {
@@ -153,7 +169,7 @@ class LogoActor : Actor() {
         super.act(delta)
         logoSprite.setPosition(this.x - logoSprite.width / 2, this.y)
         logoSprite.setAlpha(this.color.a)
-        logoSprite.setScale(1.5f)
+        logoSprite.setScale(1.8f)
     }
 }
 
