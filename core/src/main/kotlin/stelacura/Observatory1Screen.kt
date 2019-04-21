@@ -103,6 +103,12 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         inputSource.onJumpClicked {
             hero.applyLinearImpulse(Vector2(0f, 3000f), Vector2(heroHalfW, heroHalfH), true)
         }
+        inputSource.onActionClicked {
+            currentlyInteractable?.let {
+                interactionActions[it]
+            }?.invoke()
+        }
+
         world.setContactListener(object : ContactListener {
             override fun beginContact(contact: Contact) {
                 val bA = contact.fixtureA.body
