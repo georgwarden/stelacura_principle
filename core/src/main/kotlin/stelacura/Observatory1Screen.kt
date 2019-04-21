@@ -47,6 +47,10 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
     }
     private val renderer = Box2DDebugRenderer()
 
+    private val background = Sprite(Texture(Gdx.files.internal("observatory_background.png"))).also {
+        it.setPosition(0f, 0f)
+    }
+
     private val hero = world.body {
         type = BodyDef.BodyType.DynamicBody
         box(heroHalfW * 2, heroHalfH * 2) {
@@ -54,7 +58,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
             friction = 0.0f
             restitution = 0f
         }
-        position.set(100f, 10f)
+        position.set(100f, heroHalfH + 60f)
         this.linearDamping = 1.5f
         fixedRotation = true
     }
@@ -66,7 +70,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
             friction = 0f
             restitution = 0f
         }
-        position.set(levelLength / 2, 0f)
+        position.set(levelLength / 2, 60f)
     }
     private val leftWall = world.body {
         type = BodyDef.BodyType.StaticBody
@@ -166,7 +170,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
 
         val move = input.x != 0f
 
-        hero.applyForceToCenter(Vector2(input.x * 100f, 0f), true)
+        hero.applyForceToCenter(Vector2(input.x * 300f, 0f), true)
 
         if (input.x > 0) {
             if (!isDirectedRight) {
@@ -191,14 +195,16 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         player.setPosition(drawCoords.x, drawCoords.y)
         player.update()
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        /*shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         for (i in -100..100) {
             val bottom = camera.project(Vector3(i * 100f, 0f, 0f))
             shapeRenderer.line(bottom.x, 0f, bottom.x, 720f)
         }
         shapeRenderer.end()
-
+*/
         batch.begin()
+        val bgc = camera.project(Vector3())
+        batch.draw(background, bgc.x, 0f)
         if (interactionHintVisible) {
             val dc = camera.project(Vector3(interactionHintPosition, 0f))
             batch.draw(interactionHint, dc.x, dc.y)
