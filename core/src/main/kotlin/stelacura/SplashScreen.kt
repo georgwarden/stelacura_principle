@@ -39,7 +39,14 @@ class SplashScreen(private val core: Core) : KtxScreen {
     private val controllerController = ControllerController()
 
     init {
-        controllerController.onStartClicked { core.goTo<Observatory1Screen>() }
+        controllerController.onStartClicked {
+            curtainActor.addAction(
+                    Actions.sequence(
+                            Actions.fadeIn(1.5f),
+                            Actions.run { core.goTo<Observatory1Screen>() }
+                    )
+            )
+        }
 
         skySprite.setPosition(0f, 0f)
         skySprite.setSize(WORLD_WIDTH, WORLD_HEIGHT)
