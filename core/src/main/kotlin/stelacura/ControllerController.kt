@@ -17,6 +17,7 @@ class ControllerController : ControllerListener, InputSource {
     private var onAction: Listener? = null
     private var onInventory: Listener? = null
     private var onJump: Listener? = null
+    private var onStart: Listener? = null
 
     override fun pollDirection(): Vector2 {
         return vector2.cpy()
@@ -34,7 +35,9 @@ class ControllerController : ControllerListener, InputSource {
         onInventory = f
     }
 
-
+    override fun onStartClicked(f: () -> Unit) {
+        onStart = f
+    }
 
     override fun connected(controller: Controller?) {
 
@@ -44,20 +47,24 @@ class ControllerController : ControllerListener, InputSource {
     // 2 - action
     // 3 - inventory
     override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean {
+        Gdx.app.log("Controller", buttonCode.toString())
         when(buttonCode) {
             2 -> {
-                Gdx.app.log("Controller", "Action clicked!")
+                //Gdx.app.log("Controller", "Action clicked!")
                 onAction?.invoke()
             }
 
             3 -> {
-                Gdx.app.log("Controller", "Inventory clicked!")
+                //Gdx.app.log("Controller", "Inventory clicked!")
                 onInventory?.invoke()
             }
 
             0 -> {
-                Gdx.app.log("Controller", "Jump clicked!")
+                //Gdx.app.log("Controller", "Jump clicked!")
                 onJump?.invoke()
+            }
+            7 -> {
+                onStart?.invoke()
             }
         }
         return true
@@ -77,7 +84,7 @@ class ControllerController : ControllerListener, InputSource {
             1 -> vector2.x = round(value)
             0 -> vector2.y = -round(value)
         }
-        Gdx.app.log("Controller", "$vector2")
+        //Gdx.app.log("Controller", "$vector2")
         return true
     }
 

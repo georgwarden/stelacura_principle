@@ -12,5 +12,6 @@ interface InputSource {
     fun onActionClicked(f: () -> Unit)
     fun onJumpClicked(f: () -> Unit)
     fun onInventoryClicked(f: () -> Unit)
+    fun onStartClicked(f: () -> Unit)
 
 }
