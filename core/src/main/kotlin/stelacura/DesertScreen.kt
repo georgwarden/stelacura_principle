@@ -48,11 +48,11 @@ class DesertScreen(private val core: Core) : KtxScreen {
     private val renderer = Box2DDebugRenderer()
 
     private val spaceBackground = Texture(Gdx.files.internal("sky2.png"))
-    private val background = Sprite(Texture(Gdx.files.internal("dst_bg.png"))).also {
+    private val background = Sprite(Texture(Gdx.files.internal("aga.png"))).also {
         it.setPosition(0f, 0f)
     }
 
-    private val themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("desert_theme.mp3"))).also { it.color.a = 0.5f }
+    private val themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("aga2.mp3"))).also { it.color.a = 0.5f }
     private val curtainActor = CurtainActor(ShapeRenderer())
     private val steps = Gdx.audio.newSound(Gdx.files.internal("sounds/sand_steps.mp3"))
 
@@ -251,7 +251,7 @@ class DesertScreen(private val core: Core) : KtxScreen {
         }
         drawer.beforeDraw(player, batch)
         drawer.draw(player)
-        if (curtainActor.color.a != 0f) curtainActor.draw(null, 1f)
+        //if (curtainActor.color.a != 0f) curtainActor.draw(null, 1f)
         batch.end()
     }
 
