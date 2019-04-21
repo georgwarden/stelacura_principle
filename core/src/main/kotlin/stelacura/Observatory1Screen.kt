@@ -1,7 +1,6 @@
 package stelacura
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -13,7 +12,6 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.box2d.BodyDef
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
-import com.badlogic.gdx.physics.box2d.ContactListener
 import com.badlogic.gdx.physics.box2d.World
 import com.brashmonkey.spriter.Player
 import com.brashmonkey.spriter.SCMLReader
@@ -22,15 +20,14 @@ import com.uwsoft.editor.renderer.utils.LibGdxLoader
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.box2d.body
-import ktx.box2d.filter
-import ktx.box2d.ropeJointWith
 import com.badlogic.gdx.utils.Array as GdxArray
 
-class Observatory1Screen : KtxScreen {
+class Observatory1Screen(private val core: Core) : KtxScreen {
 
     private val pScale = 0.15f
     private val heroHalfW = 40f
     private val heroHalfH = 123f
+    private val levelLength = 1280 * 2f
 
     private val batch = SpriteBatch()
     private val shapeRenderer = ShapeRenderer()
@@ -43,9 +40,6 @@ class Observatory1Screen : KtxScreen {
     private val drawer = LibGdxDrawer(loader, shapeRenderer)
     private val player = Player(data.getEntity(0)).apply {
         scale = pScale
-    }
-    private val stillPlayer = Sprite(Texture(Gdx.files.internal("stelacura.png"))).apply {
-        setScale(pScale)
     }
 
     private val world = World(Vector2(0.0f, -50.0f), true)
@@ -62,34 +56,59 @@ class Observatory1Screen : KtxScreen {
             friction = 0.0f
             restitution = 0f
         }
-        position.set(0f, 100f)
+        position.set(100f, 10f)
         fixedRotation = true
     }
+
     private val ground = world.body {
         type = BodyDef.BodyType.StaticBody
-        box(1280f * 2) {
+        box(levelLength) {
             density = 0f
             friction = 0f
             restitution = 0f
-            filter {
-                categoryBits = Categories.Bedrock
-            }
+        }
+        position.set(levelLength / 2, 0f)
+    }
+    private val leftWall = world.body {
+        type = BodyDef.BodyType.StaticBody
+        box(height = 720f) {
+        }
+        position.set(0f, 360f)
+    }
+    private val rightWall = world.body {
+        type = BodyDef.BodyType.StaticBody
+        box(height = 720f) {
+        }
+        position.set(levelLength, 360f)
+    }
+
+    private val telescope = world.body {
+        type = BodyDef.BodyType.StaticBody
+        box(width = 100f, height = 200f) {
+            isSensor = true
         }
     }
+
+    private var currentlyInteractable: String? = null
+    private var interactionActions = mapOf(
+            "telescope" to { core.goTo<DesertScreen>() }
+    )
 
     init {
         Controllers.addListener(inputSource as ControllerListener)
         inputSource.onJumpClicked {
             hero.applyLinearImpulse(Vector2(0f, 3000f), Vector2(heroHalfW, heroHalfH), true)
         }
+
     }
 
     private var isDirectedRight = true
     override fun render(delta: Float) {
-        clearScreen(0f, 0f, 0f, 1f)
+        clearScreen(0.3f, 0.3f, 0.3f, 1f)
         renderer.render(world, camera.combined)
-        world.step(1/45f, 6, 2)
-        camera.position.set(hero.position.x, 360f, 0f)
+        world.step(1 / 45f, 6, 2)
+        camera.position.set((hero.position.x.takeIf { it > 640f } ?: 640f).takeIf { it < levelLength - 640f }
+                ?: (levelLength - 640), 360f, 0f)
         camera.update()
 
         val input = inputSource.pollDirection()
@@ -102,7 +121,6 @@ class Observatory1Screen : KtxScreen {
             if (!isDirectedRight) {
                 isDirectedRight = true
                 player.flipX()
-                stillPlayer.flip(true, false)
             }
         }
 
@@ -110,15 +128,17 @@ class Observatory1Screen : KtxScreen {
             if (isDirectedRight) {
                 isDirectedRight = false
                 player.flipX()
-                stillPlayer.flip(true, false)
             }
+        }
+
+        if (!move) {
+            player.time = 0
         }
 
         val drawCoords = camera.project(Vector3(hero.position.x, hero.position.y, 0f))
 
         player.setPosition(drawCoords.x, drawCoords.y)
         player.update()
-        stillPlayer.setOrigin(drawCoords.x + heroHalfW, drawCoords.y - heroHalfH)
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         for (i in -100..100) {
@@ -128,12 +148,8 @@ class Observatory1Screen : KtxScreen {
         shapeRenderer.end()
 
         batch.begin()
-        if (move) {
-            drawer.beforeDraw(player, batch)
-            drawer.draw(player)
-        } else {
-            stillPlayer.draw(batch)
-        }
+        drawer.beforeDraw(player, batch)
+        drawer.draw(player)
         batch.end()
     }
 

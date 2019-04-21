@@ -8,8 +8,12 @@ class Core : KtxGame<KtxScreen>() {
     override fun create() {
         val splashScreen = SplashScreen()
         addScreen(splashScreen)
-        addScreen(Observatory1Screen())
+        addScreen(Observatory1Screen(this))
         setScreen<Observatory1Screen>()
+    }
+
+    inline fun <reified T : KtxScreen> goTo() {
+        setScreen<T>()
     }
 
 }
