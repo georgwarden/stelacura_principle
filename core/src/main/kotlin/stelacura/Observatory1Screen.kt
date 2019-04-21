@@ -26,7 +26,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
     private val pScale = 0.15f
     private val heroHalfW = 40f
     private val heroHalfH = 123f
-    private val levelLength = 1280 * 2f
+    private val levelLength = 1280 * 4f
 
     private val batch = SpriteBatch()
     private val shapeRenderer = ShapeRenderer()
@@ -48,7 +48,8 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
     }
     private val renderer = Box2DDebugRenderer()
 
-    private val background = Sprite(Texture(Gdx.files.internal("observatory_background.png"))).also {
+    private val spaceBackground = Texture(Gdx.files.internal("sky2.png"))
+    private val background = Sprite(Texture(Gdx.files.internal("obs_bg.png"))).also {
         it.setPosition(0f, 0f)
     }
 
@@ -96,8 +97,9 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         box(width = 100f, height = 200f) {
             isSensor = true
         }
-        position.set(500f, 0f)
+        position.set(levelLength - 80f, 0f)
     }
+    private val telescopeModel = Sprite(Texture(Gdx.files.internal("telescope.png")))
 
     private var currentlyInteractable: String? = null
     private var interactionActions = mapOf(
@@ -241,6 +243,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         shapeRenderer.end()
 */
         batch.begin()
+        batch.draw(spaceBackground, 0f, 0f)
         val bgc = camera.project(Vector3())
         batch.draw(background, bgc.x, 0f)
         if (interactionHintVisible) {
