@@ -1,15 +1,35 @@
 package stelacura
 
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import ktx.app.KtxScreen
+import ktx.app.use
 
 class SplashScreen : KtxScreen {
+
+    private val inventory = Inventory()
+    private val batch = SpriteBatch()
+
+    init {
+        inventory.addNote("Egor pidor")
+        inventory.addNote("Vrode daje")
+        inventory.addNote("Rabotaet")
+        inventory.addNote("Check")
+
+        inventory.setPosition(100f, 100f)
+        inventory.fuck = true
+
+        Gdx.app.log("Test", "${Gdx.app.graphics.width} x ${Gdx.app.graphics.height}")
+    }
 
     override fun show() {
         // Prepare your screen here.
     }
 
     override fun render(delta: Float) {
-        // Draw your screen here. "delta" is the time since last render in seconds.
+        batch.use { b ->
+            inventory.draw(b, 1f)
+        }
     }
 
     override fun resize(width: Int, height: Int) {
