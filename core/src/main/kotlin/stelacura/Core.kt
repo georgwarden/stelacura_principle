@@ -21,9 +21,9 @@ class Core : KtxGame<KtxScreen>() {
 
         addScreen(SplashScreen(this))
         addScreen(Observatory1Screen(this))
-        addScreen(DesertScreen())
+        addScreen(DesertScreen(this))
 
-        goTo<SplashScreen>()
+        goTo<DesertScreen>()
     }
 
     inline fun <reified T : KtxScreen> goTo() {
