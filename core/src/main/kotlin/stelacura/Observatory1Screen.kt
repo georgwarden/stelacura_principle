@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.box2d.*
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.brashmonkey.spriter.Player
 import com.brashmonkey.spriter.SCMLReader
 import com.uwsoft.editor.renderer.utils.LibGdxDrawer
@@ -50,6 +51,9 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
     private val background = Sprite(Texture(Gdx.files.internal("observatory_background.png"))).also {
         it.setPosition(0f, 0f)
     }
+
+    private val themeActor = MusicActor(Gdx.audio.newMusic(Gdx.files.internal("observatory_theme.mp3")))
+    private val curtainActor = CurtainActor(ShapeRenderer())
 
     private val hero = world.body {
         type = BodyDef.BodyType.DynamicBody
@@ -96,7 +100,22 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
 
     private var currentlyInteractable: String? = null
     private var interactionActions = mapOf(
-            "telescope" to { core.goTo<DesertScreen>() }
+            "telescope" to {
+                themeActor.addAction(
+                        Actions.sequence(
+                                Actions.fadeOut(1.5f),
+                                Actions.run { themeActor.music.stop() },
+                                Actions.run {
+                                    curtainActor.addAction(
+                                            Actions.sequence(
+                                                    Actions.fadeIn(1.5f),
+                                                    Actions.run { core.goTo<DesertScreen>() }
+                                            )
+                                    )
+                                }
+                        )
+                )
+            }
     )
 
     private val interactionHint = Texture(Gdx.files.internal("interaction_hint.png"))
@@ -104,6 +123,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
     private val interactionHintPosition = Vector2()
 
     init {
+        curtainActor.color.a = 1.0f
         Controllers.addListener(inputSource as ControllerListener)
         inputSource.onJumpClicked {
             hero.applyLinearImpulse(Vector2(0f, 3000f), Vector2(heroHalfW, heroHalfH), true)
@@ -157,6 +177,11 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         })
     }
 
+    override fun show() {
+        curtainActor.addAction(Actions.fadeOut(1.5f))
+        themeActor.music.play()
+    }
+
     private var isDirectedRight = true
     override fun render(delta: Float) {
         clearScreen(0.3f, 0.3f, 0.3f, 1f)
@@ -195,6 +220,9 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         player.setPosition(drawCoords.x, drawCoords.y)
         player.update()
 
+        curtainActor.act(delta)
+        themeActor.act(delta)
+
         /*shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         for (i in -100..100) {
             val bottom = camera.project(Vector3(i * 100f, 0f, 0f))
@@ -211,6 +239,7 @@ class Observatory1Screen(private val core: Core) : KtxScreen {
         }
         drawer.beforeDraw(player, batch)
         drawer.draw(player)
+        if (curtainActor.color.a != 0f) curtainActor.draw(null, 1f)
         batch.end()
     }
 
